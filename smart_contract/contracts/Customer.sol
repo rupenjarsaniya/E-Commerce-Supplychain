@@ -75,7 +75,6 @@ contract Customer {
 
     // Cancel Order
     function cancelOrder(uint256 index) external onlyCustomer {
-        require(orders[msg.sender][index] != address(0), "Invalid Order");
         Order(orders[msg.sender][index]).cancelOrder(msg.sender);
     }
 
@@ -87,5 +86,25 @@ contract Customer {
     // Get Order By Index
     function getOrderByIndex(uint256 index) external view returns (address) {
         return orders[msg.sender][index];
+    }
+
+    // Get Order Details
+    function getOrderDetail(
+        address orderAddress
+    )
+        external
+        view
+        returns (
+            uint256 _orderId,
+            address _seller_ethAddress,
+            address _transporter_ethAddress,
+            string memory _location,
+            string memory _items,
+            uint256 _quantity,
+            uint256 _amount,
+            Order.OrderStatus _status
+        )
+    {
+        return Order(orderAddress).getOrderDetail(msg.sender);
     }
 }
