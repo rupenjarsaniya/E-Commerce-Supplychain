@@ -1,6 +1,83 @@
 import Head from "next/head";
+import { Button, Group, Input, TextInput, createStyles } from "@mantine/core";
+import { IconPlus } from "@tabler/icons-react";
+import { TableRecord } from "@/components/Table";
+import { ModalRecord } from "@/components/Modal";
+import { useDisclosure } from "@mantine/hooks";
 
-export default function Home() {
+const useStyles = createStyles((theme) => ({
+  main: {
+    maxWidth: 1000,
+    margin: "auto",
+    minHeight: "67vh",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+
+  wrap: {
+    alignSelf: "flex-end",
+    margin: theme.spacing.md,
+    [theme.fn.smallerThan("xs")]: {
+      marginInline: 0,
+    },
+  },
+
+  root: {
+    position: "relative",
+  },
+
+  input: {
+    height: "54rem",
+    paddingTop: "18rem",
+  },
+
+  label: {
+    position: "absolute",
+    pointerEvents: "none",
+    fontSize: theme.fontSizes.xs,
+    paddingLeft: theme.spacing.sm,
+    paddingTop: `calc(${theme.spacing.sm} / 2)`,
+    zIndex: 1,
+  },
+}));
+
+export default function Index() {
+  const { classes } = useStyles();
+  const [opened, { open, close }] = useDisclosure(false);
+
+  const modalContent = (
+    <Group>
+      <Input.Wrapper label="Item Name" required miw={"100%"} mx="auto">
+        <Input placeholder="Item Name" />
+      </Input.Wrapper>
+
+      <Group position="apart" grow sx={{ width: "100%" }}>
+        <Input.Wrapper label="Quantity" required>
+          <Input placeholder="Quantity" />
+        </Input.Wrapper>
+        <Input.Wrapper label="Amount" required>
+          <Input placeholder="Amount" />
+        </Input.Wrapper>
+      </Group>
+
+      <Input.Wrapper label="Seller Eth Address" miw={"100%"} required mx="auto">
+        <Input placeholder="Seller Eth Address" />
+      </Input.Wrapper>
+      <Input.Wrapper
+        label="Transporter Eth Address"
+        miw={"100%"}
+        required
+        mx="auto"
+      >
+        <Input placeholder="Transporter Eth Address" />
+      </Input.Wrapper>
+      <Button variant={"light"} onClick={() => close()}>
+        Place Order
+      </Button>
+    </Group>
+  );
+
   return (
     <>
       <Head>
@@ -9,7 +86,22 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>Home</main>
+      <main className={classes.main}>
+        <div className={classes.wrap}>
+          <ModalRecord
+            text={"New order"}
+            leftIcon={<IconPlus size="1rem" />}
+            loading={false}
+            variant={"light"}
+            content={modalContent}
+            title={"Place new order"}
+            opened={opened}
+            onClose={() => close()}
+            onOpen={() => open()}
+          />
+        </div>
+        <TableRecord />
+      </main>
     </>
   );
 }
