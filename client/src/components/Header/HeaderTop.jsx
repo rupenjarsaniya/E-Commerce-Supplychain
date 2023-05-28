@@ -140,10 +140,6 @@ export const links = [
     label: "Home",
   },
   {
-    link: "/history",
-    label: "History",
-  },
-  {
     link: "/profile",
     label: "Profile",
   },

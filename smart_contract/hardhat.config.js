@@ -8,4 +8,5 @@ module.exports = {
       url: "HTTP://127.0.0.1:7545",
     },
   },
+  defaultNetwork: "ganache",
 };

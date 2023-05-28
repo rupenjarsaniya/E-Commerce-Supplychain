@@ -1,18 +1,12 @@
 import {
   ActionIcon,
-  Anchor,
   Avatar,
   Button,
-  Container,
-  Grid,
   Select,
-  Text,
   TextInput,
-  Tooltip,
   createStyles,
 } from "@mantine/core";
-import { IconEdit, IconEditCircle, IconUpload } from "@tabler/icons-react";
-import Image from "next/image";
+import { IconEdit, IconUpload } from "@tabler/icons-react";
 import React, { useState } from "react";
 const useStyles = createStyles((theme) => ({
   main: {
@@ -36,8 +30,6 @@ const useStyles = createStyles((theme) => ({
       alignItems: "center",
     },
   },
-
-  profileInfoWrapper: {},
 
   avatarWrapper: {
     display: "flex",
@@ -140,7 +132,7 @@ export default function Profile() {
             size={200}
           />
         </div>
-        <div className={classes.profileInfoWrapper}>
+        <div>
           <NameFocus />
           <LocationFocus />
           <RoleFocus />
