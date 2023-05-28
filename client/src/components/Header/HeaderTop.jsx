@@ -26,6 +26,7 @@ import {
   IconSwitchHorizontal,
   IconChevronDown,
 } from "@tabler/icons-react";
+import Link from "next/link";
 
 const HEADER_HEIGHT = rem(60);
 
@@ -155,20 +156,19 @@ export const HeaderTop = () => {
   const [userMenuOpened, setUserMenuOpened] = useState(false);
 
   const items = links.map((link) => (
-    <a
+    <Link
       key={link.label}
       href={link.link}
       className={cx(classes.link, {
         [classes.linkActive]: active === link.link,
       })}
-      onClick={(event) => {
-        event.preventDefault();
+      onClick={() => {
         setActive(link.link);
         close();
       }}
     >
       {link.label}
-    </a>
+    </Link>
   ));
 
   return (

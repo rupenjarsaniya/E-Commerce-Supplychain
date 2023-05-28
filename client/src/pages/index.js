@@ -22,24 +22,6 @@ const useStyles = createStyles((theme) => ({
       marginInline: 0,
     },
   },
-
-  root: {
-    position: "relative",
-  },
-
-  input: {
-    height: "54rem",
-    paddingTop: "18rem",
-  },
-
-  label: {
-    position: "absolute",
-    pointerEvents: "none",
-    fontSize: theme.fontSizes.xs,
-    paddingLeft: theme.spacing.sm,
-    paddingTop: `calc(${theme.spacing.sm} / 2)`,
-    zIndex: 1,
-  },
 }));
 
 export default function Index() {
