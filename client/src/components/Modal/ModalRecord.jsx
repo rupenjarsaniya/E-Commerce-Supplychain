@@ -1,4 +1,4 @@
-import { Modal, Group, Button } from "@mantine/core";
+import { Modal, Group, Button } from '@mantine/core';
 
 export const ModalRecord = ({
   variant,

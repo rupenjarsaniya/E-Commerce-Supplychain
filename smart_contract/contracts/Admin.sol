@@ -21,6 +21,7 @@ contract Admin {
     event RegisterUser(address indexed ethAddress, string name);
     event ReassignRole(address indexed ethAddress, uint8 role);
     event RevokeRole(address indexed ethAddress, uint8 role);
+    event UpdateLocation(address indexed ethAddress, string role);
 
     modifier isUser() {
         require(
@@ -60,6 +61,12 @@ contract Admin {
     function assignRole(uint8 role) external isUser {
         userDetail[msg.sender].role = UserRole(role);
         emit ReassignRole(msg.sender, uint8(userDetail[msg.sender].role));
+    }
+
+    // Change Location
+    function updateLocation(string memory location) external isUser {
+        userDetail[msg.sender].location = location;
+        emit UpdateLocation(msg.sender, userDetail[msg.sender].location);
     }
 
     // User Data

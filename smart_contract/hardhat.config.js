@@ -9,4 +9,7 @@ module.exports = {
     },
   },
   defaultNetwork: "ganache",
+  paths: {
+    artifacts: "../client/src/artifacts",
+  },
 };
