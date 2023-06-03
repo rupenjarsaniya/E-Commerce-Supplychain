@@ -1,4 +1,10 @@
-import { AdminABI, AdminContractAddress } from '@/utils/const';
+import { getContract } from '@/helper/fetchContracts';
+import {
+  AdminABI,
+  AdminContractAddress,
+  CustomerABI,
+  CustomerContractAddress,
+} from '@/utils/const';
 import { useDisclosure } from '@mantine/hooks';
 import { ethers } from 'ethers';
 import React, { createContext, useCallback, useEffect, useState } from 'react';
@@ -23,6 +29,7 @@ export const SupplyProvider = ({ children }) => {
   const [newName, setNewName] = useState('');
   const [newLocation, setNewLocation] = useState('');
   const [newRole, setNewRole] = useState(0);
+  const [customerContract, setCustomerContract] = useState(null);
   const [
     openedRegisterModal,
     { open: openRegisterModal, close: closeRegisterModal },
@@ -97,13 +104,10 @@ export const SupplyProvider = ({ children }) => {
     }
 
     try {
-      const provider = new ethers.providers.Web3Provider(metamask);
-      const signer = provider.getSigner();
-
-      const contract = new ethers.Contract(
+      const contract = await getContract(
+        metamask,
         AdminContractAddress,
-        AdminABI,
-        signer
+        AdminABI
       );
 
       setAdminContract(contract);
@@ -207,6 +211,46 @@ export const SupplyProvider = ({ children }) => {
     }
   }, [location, adminContract]);
 
+  const getCustomerContract = useCallback(async () => {
+    const contract = await getContract(
+      metamask,
+      CustomerContractAddress,
+      CustomerABI
+    );
+
+    setCustomerContract(contract);
+  }, [metamask]);
+
+  const placeOrder = useCallback(async () => {
+    if (!customerContract) {
+      return;
+    }
+
+    try {
+      const orderId = 200000;
+      const seller_ethAddress = '0x23feD9C71F87E9b6Ba989f92FF090d61E86D9e92';
+      const transporter_ethAddress =
+        '0xEaB4156CA83B929bE8150Ad10f52E39b1287FD0d';
+      const location = 'Kutch';
+      const quantity = 1;
+      const items = 'Apple Macbook M2 Pro';
+
+      const tx = await customerContract.placeOrder(
+        orderId,
+        seller_ethAddress,
+        transporter_ethAddress,
+        location,
+        quantity,
+        items,
+        { value: ethers.utils.parseEther('0.1') }
+      );
+
+      await tx.wait();
+    } catch (error) {
+      console.log(error);
+    }
+  }, [customerContract]);
+
   useEffect(() => {
     checkIfWalletIsConnected();
   }, [checkIfWalletIsConnected]);
@@ -214,8 +258,9 @@ export const SupplyProvider = ({ children }) => {
   useEffect(() => {
     if (appStatus === 'connected') {
       getAdminContract();
+      getCustomerContract();
     }
-  }, [getAdminContract, appStatus]);
+  }, [getAdminContract, getCustomerContract, appStatus]);
 
   const value = {
     appStatus,
@@ -241,6 +286,7 @@ export const SupplyProvider = ({ children }) => {
     revokeRole,
     updateLocation,
     setLocation,
+    placeOrder,
   };
   return (
     <SupplyContext.Provider value={value}>{children}</SupplyContext.Provider>

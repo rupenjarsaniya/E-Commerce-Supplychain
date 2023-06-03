@@ -83,6 +83,7 @@ export default function Index() {
     registerUser,
     openRegisterModal,
     role,
+    placeOrder,
   } = useContext(SupplyContext);
 
   const modalContent = (
@@ -111,7 +112,13 @@ export default function Index() {
       >
         <Input placeholder="Transporter Eth Address" />
       </Input.Wrapper>
-      <Button variant={'light'} onClick={() => close()}>
+      <Button
+        variant={'light'}
+        onClick={() => {
+          close();
+          placeOrder();
+        }}
+      >
         Place Order
       </Button>
     </Group>
