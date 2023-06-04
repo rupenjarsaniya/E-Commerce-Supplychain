@@ -65,6 +65,13 @@ contract Transporter {
         Order(orderAddress).deliverdOrder(msg.sender);
     }
 
+    // Get Order Status
+    function getOrderStatus(
+        address orderAddress
+    ) external view returns (Order.OrderStatus) {
+        return Order(orderAddress).status();
+    }
+
     // Get All Order
     function getAllOrders() external view returns (address[] memory) {
         return orders[msg.sender];

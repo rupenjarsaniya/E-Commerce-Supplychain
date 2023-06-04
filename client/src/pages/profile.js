@@ -54,15 +54,53 @@ export default function Profile() {
     location,
     role,
     setRole,
-    assignRole,
-    revokeRole,
-    updateLocation,
     setLocation,
+    adminContract,
   } = useContext(SupplyContext);
   const router = useRouter();
   const [nameOpened, setNameOpened] = useState(false);
   const [locationOpened, setLocationOpened] = useState(false);
   const [roleOpened, setRoleOpened] = useState(false);
+
+  const assignRole = useCallback(async () => {
+    if (!adminContract) {
+      return;
+    }
+    try {
+      const response = await adminContract.assignRole(role);
+
+      await response.wait();
+    } catch (error) {
+      console.log(error);
+    }
+  }, [role, adminContract]);
+
+  const revokeRole = useCallback(async () => {
+    if (!adminContract) {
+      return;
+    }
+    try {
+      const response = await adminContract.revokeRole();
+
+      await response.wait();
+    } catch (error) {
+      console.log(error);
+    }
+  }, [adminContract]);
+
+  const updateLocation = useCallback(async () => {
+    console.log(location, 'location');
+    if (!adminContract || !location) {
+      return;
+    }
+    try {
+      const response = await adminContract.updateLocation(location);
+
+      await response.wait();
+    } catch (error) {
+      console.log(error);
+    }
+  }, [location, adminContract]);
 
   useEffect(() => {
     if (appStatus !== 'connected') {

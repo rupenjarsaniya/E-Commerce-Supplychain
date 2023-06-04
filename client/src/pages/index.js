@@ -1,6 +1,5 @@
 import Head from 'next/head';
 import {
-  ActionIcon,
   Button,
   Group,
   Input,
@@ -14,7 +13,7 @@ import { IconPlus } from '@tabler/icons-react';
 import { TableRecord } from '@/components/Table';
 import { ModalRecord } from '@/components/Modal';
 import { useDisclosure } from '@mantine/hooks';
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useContext } from 'react';
 import Lottie from 'lottie-react';
 import loadingAnimation from '@/asserts/loading.json';
 import errorAnimation from '@/asserts/error.json';
@@ -22,6 +21,8 @@ import metamaskIcon from '@/asserts/metamask.svg';
 import Image from 'next/image';
 import Link from 'next/link';
 import { SupplyContext } from '@/contexts/SupplyContext';
+import { ethers } from 'ethers';
+import { client } from '@/helper/sanityClient';
 
 const useStyles = createStyles((theme) => ({
   main: {
@@ -80,11 +81,81 @@ export default function Index() {
     setNewLocation,
     setNewRole,
     setNewName,
-    registerUser,
     openRegisterModal,
     role,
-    placeOrder,
+    orderRow,
+    setAppStatus,
+    adminContract,
+    customerContract,
+    fetchUserData,
   } = useContext(SupplyContext);
+
+  const registerUser = useCallback(async () => {
+    if (!adminContract) {
+      return;
+    }
+    try {
+      if (!newName || !newLocation) {
+        alert('All fields are required');
+        return;
+      }
+      const response = await adminContract.registerUser(
+        newName,
+        newLocation,
+        newRole
+      );
+
+      await response.wait();
+      closeRegisterModal();
+      await fetchUserData();
+      setAppStatus('connected');
+    } catch (error) {
+      console.log(error);
+    }
+  }, [newName, newLocation, adminContract, newRole]);
+
+  const placeOrder = useCallback(async () => {
+    if (!customerContract) {
+      return;
+    }
+
+    try {
+      const orderId = 200000;
+      const seller_ethAddress = '0x23feD9C71F87E9b6Ba989f92FF090d61E86D9e92';
+      const transporter_ethAddress =
+        '0xEaB4156CA83B929bE8150Ad10f52E39b1287FD0d';
+      const location = 'Kutch';
+      const quantity = 1;
+      const items = 'Apple Macbook M2 Pro';
+
+      const tx = await customerContract.placeOrder(
+        orderId,
+        seller_ethAddress,
+        transporter_ethAddress,
+        location,
+        quantity,
+        items,
+        { value: ethers.utils.parseEther('0.1') }
+      );
+
+      const res = await tx.wait();
+
+      const allOrders = await customerContract.getAllOrders();
+
+      const txDoc = {
+        _type: 'orderdetail',
+        txHash: res.transactionHash,
+        customerAddress: res.from,
+        sellerAddress: seller_ethAddress,
+        transporterAddress: transporter_ethAddress,
+        toAddress: allOrders[allOrders.length - 1],
+      };
+
+      await client.create(txDoc);
+    } catch (error) {
+      console.log(error);
+    }
+  }, [customerContract]);
 
   const modalContent = (
     <Group>
@@ -191,7 +262,7 @@ export default function Index() {
           />
         )}
       </div>
-      <TableRecord />
+      <TableRecord data={orderRow} />
     </>
   );
 
@@ -281,7 +352,7 @@ export default function Index() {
           return loading;
       }
     },
-    [appStatus, connected]
+    [appStatus, connected, notConnected, noMetaMask, register, error, loading]
   );
 
   return (

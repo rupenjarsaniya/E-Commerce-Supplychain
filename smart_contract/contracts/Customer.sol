@@ -88,6 +88,13 @@ contract Customer {
         return orders[msg.sender][index];
     }
 
+    // Get Order Status
+    function getOrderStatus(
+        address orderAddress
+    ) external view returns (Order.OrderStatus) {
+        return Order(orderAddress).status();
+    }
+
     // Get Order Details
     function getOrderDetail(
         address orderAddress

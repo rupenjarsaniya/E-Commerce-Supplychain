@@ -1,9 +1,14 @@
 import { getContract } from '@/helper/fetchContracts';
+import { client } from '@/helper/sanityClient';
 import {
   AdminABI,
   AdminContractAddress,
   CustomerABI,
   CustomerContractAddress,
+  SellerABI,
+  SellerContractAddress,
+  TransporterABI,
+  TransporterContractAddress,
 } from '@/utils/const';
 import { useDisclosure } from '@mantine/hooks';
 import { ethers } from 'ethers';
@@ -25,11 +30,14 @@ export const SupplyProvider = ({ children }) => {
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
   const [role, setRole] = useState(0);
-  const [ethAddress, setEthAddress] = useState('');
   const [newName, setNewName] = useState('');
   const [newLocation, setNewLocation] = useState('');
   const [newRole, setNewRole] = useState(0);
   const [customerContract, setCustomerContract] = useState(null);
+  const [transporterContract, setTransporterContract] = useState(null);
+  const [sellerContract, setSellerContract] = useState(null);
+  const [orderRow, setOrderRow] = useState([]);
+
   const [
     openedRegisterModal,
     { open: openRegisterModal, close: closeRegisterModal },
@@ -122,7 +130,6 @@ export const SupplyProvider = ({ children }) => {
         setName(userData.name);
         setLocation(userData.location);
         setRole(userData.role);
-        setEthAddress(userData.ethAddress);
       }
     } catch (error) {
       console.log(error);
@@ -140,116 +147,93 @@ export const SupplyProvider = ({ children }) => {
         setName(userData.name);
         setLocation(userData.location);
         setRole(userData.role);
-        setEthAddress(userData.ethAddress);
       }
     } catch (error) {
       console.log(error);
     }
   }, [adminContract]);
-
-  const registerUser = useCallback(async () => {
-    if (!adminContract) {
-      return;
-    }
-    try {
-      if (!newName || !newLocation) {
-        alert('All fields are required');
-        return;
-      }
-      const response = await adminContract.registerUser(
-        newName,
-        newLocation,
-        newRole
-      );
-
-      await response.wait();
-      closeRegisterModal();
-      await fetchUserData();
-      setAppStatus('connected');
-    } catch (error) {
-      console.log(error);
-    }
-  }, [newName, newLocation, adminContract, newRole]);
-
-  const assignRole = useCallback(async () => {
-    if (!adminContract) {
-      return;
-    }
-    try {
-      const response = await adminContract.assignRole(role);
-
-      await response.wait();
-    } catch (error) {
-      console.log(error);
-    }
-  }, [role, adminContract]);
-
-  const revokeRole = useCallback(async () => {
-    if (!adminContract) {
-      return;
-    }
-    try {
-      const response = await adminContract.revokeRole();
-
-      await response.wait();
-    } catch (error) {
-      console.log(error);
-    }
-  }, [adminContract]);
-
-  const updateLocation = useCallback(async () => {
-    console.log(location, 'location');
-    if (!adminContract || !location) {
-      return;
-    }
-    try {
-      const response = await adminContract.updateLocation(location);
-
-      await response.wait();
-    } catch (error) {
-      console.log(error);
-    }
-  }, [location, adminContract]);
 
   const getCustomerContract = useCallback(async () => {
+    if (!metamask) {
+      return;
+    }
+    const allOrdersObjs = [];
+
     const contract = await getContract(
       metamask,
       CustomerContractAddress,
       CustomerABI
     );
 
+    const allOrders = await contract.getAllOrders();
+
+    for (const element of allOrders) {
+      const query = `*[_type == 'orderdetail' && toAddress == "${element}" && customerAddress == "${connectedAccount}"]`;
+      const res = await client.fetch(query);
+
+      if (res.length > 0) {
+        const status = await contract.getOrderStatus(element);
+        const newObj = {
+          orderAddress: res[0].toAddress,
+          txHash: res[0].txHash,
+          status: status,
+        };
+
+        allOrdersObjs.push(newObj);
+      }
+    }
+
+    setOrderRow(allOrdersObjs);
     setCustomerContract(contract);
-  }, [metamask]);
+  }, [metamask, connectedAccount]);
 
-  const placeOrder = useCallback(async () => {
-    if (!customerContract) {
-      return;
+  const getTransporterContract = useCallback(async () => {
+    const allOrdersObjs = [];
+    const contract = await getContract(
+      metamask,
+      TransporterContractAddress,
+      TransporterABI
+    );
+
+    const query = `*[_type == 'orderdetail' && transporterAddress == "${connectedAccount}"]`;
+    const res = await client.fetch(query);
+
+    for (const element of res) {
+      const status = await contract.getOrderStatus(element.toAddress);
+      const newObj = {
+        orderAddress: element.toAddress,
+        txHash: element.txHash,
+        status: status,
+      };
+      allOrdersObjs.push(newObj);
     }
+    setOrderRow(allOrdersObjs);
+    setTransporterContract(contract);
+  }, [metamask, connectedAccount]);
 
-    try {
-      const orderId = 200000;
-      const seller_ethAddress = '0x23feD9C71F87E9b6Ba989f92FF090d61E86D9e92';
-      const transporter_ethAddress =
-        '0xEaB4156CA83B929bE8150Ad10f52E39b1287FD0d';
-      const location = 'Kutch';
-      const quantity = 1;
-      const items = 'Apple Macbook M2 Pro';
+  const getSellerContract = useCallback(async () => {
+    const allOrdersObjs = [];
+    const contract = await getContract(
+      metamask,
+      SellerContractAddress,
+      SellerABI
+    );
 
-      const tx = await customerContract.placeOrder(
-        orderId,
-        seller_ethAddress,
-        transporter_ethAddress,
-        location,
-        quantity,
-        items,
-        { value: ethers.utils.parseEther('0.1') }
-      );
+    const query = `*[_type == 'orderdetail' && sellerAddress == "${connectedAccount}"]`;
+    const res = await client.fetch(query);
 
-      await tx.wait();
-    } catch (error) {
-      console.log(error);
+    for (const element of res) {
+      const status = await contract.getOrderStatus(element.toAddress);
+      const newObj = {
+        orderAddress: element.toAddress,
+        txHash: element.txHash,
+        status: status,
+      };
+      allOrdersObjs.push(newObj);
     }
-  }, [customerContract]);
+    setOrderRow(allOrdersObjs);
+    setSellerContract(contract);
+  }, [metamask, connectedAccount]);
 
   useEffect(() => {
     checkIfWalletIsConnected();
@@ -258,9 +242,15 @@ export const SupplyProvider = ({ children }) => {
   useEffect(() => {
     if (appStatus === 'connected') {
       getAdminContract();
-      getCustomerContract();
+      if (role === 3) {
+        getCustomerContract();
+      } else if (role === 2) {
+        getTransporterContract();
+      } else if (role === 1) {
+        getSellerContract();
+      }
     }
-  }, [getAdminContract, getCustomerContract, appStatus]);
+  }, [getAdminContract, getCustomerContract, role, appStatus]);
 
   const value = {
     appStatus,
@@ -279,14 +269,15 @@ export const SupplyProvider = ({ children }) => {
     setNewName,
     setNewLocation,
     setNewRole,
-    registerUser,
-    fetchUserData,
     setRole,
-    assignRole,
-    revokeRole,
-    updateLocation,
     setLocation,
-    placeOrder,
+    customerContract,
+    orderRow,
+    transporterContract,
+    sellerContract,
+    metamask,
+    setAppStatus,
+    fetchUserData,
   };
   return (
     <SupplyContext.Provider value={value}>{children}</SupplyContext.Provider>

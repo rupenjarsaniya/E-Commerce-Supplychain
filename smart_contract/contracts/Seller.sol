@@ -59,6 +59,13 @@ contract Seller {
         Order(orderAddress).packagingOrder(msg.sender);
     }
 
+    // Get Order Status
+    function getOrderStatus(
+        address orderAddress
+    ) external view returns (Order.OrderStatus) {
+        return Order(orderAddress).status();
+    }
+
     // Get Order By Index
     function getOrderByIndex(uint256 index) external view returns (address) {
         return orders[msg.sender][index];
