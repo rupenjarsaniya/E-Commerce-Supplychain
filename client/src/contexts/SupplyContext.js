@@ -1,10 +1,10 @@
 import { getContract } from '@/helper/fetchContracts';
-import { client } from '@/helper/sanityClient';
 import {
   AdminABI,
   AdminContractAddress,
   CustomerABI,
   CustomerContractAddress,
+  OrderABI,
   SellerABI,
   SellerContractAddress,
   TransporterABI,
@@ -37,6 +37,7 @@ export const SupplyProvider = ({ children }) => {
   const [transporterContract, setTransporterContract] = useState(null);
   const [sellerContract, setSellerContract] = useState(null);
   const [orderRow, setOrderRow] = useState([]);
+  const [status, setStatus] = useState([]);
 
   const [
     openedRegisterModal,
@@ -157,7 +158,6 @@ export const SupplyProvider = ({ children }) => {
     if (!metamask) {
       return;
     }
-    const allOrdersObjs = [];
 
     const contract = await getContract(
       metamask,
@@ -166,74 +166,83 @@ export const SupplyProvider = ({ children }) => {
     );
 
     const allOrders = await contract.getAllOrders();
-
-    for (const element of allOrders) {
-      const query = `*[_type == 'orderdetail' && toAddress == "${element}" && customerAddress == "${connectedAccount}"]`;
-      const res = await client.fetch(query);
-
-      if (res.length > 0) {
-        const status = await contract.getOrderStatus(element);
-        const newObj = {
-          orderAddress: res[0].toAddress,
-          txHash: res[0].txHash,
-          status: status,
-        };
-
-        allOrdersObjs.push(newObj);
-      }
-    }
-
-    setOrderRow(allOrdersObjs);
+    getStatus(allOrders);
+    setOrderRow(allOrders);
     setCustomerContract(contract);
   }, [metamask, connectedAccount]);
 
   const getTransporterContract = useCallback(async () => {
-    const allOrdersObjs = [];
     const contract = await getContract(
       metamask,
       TransporterContractAddress,
       TransporterABI
     );
 
-    const query = `*[_type == 'orderdetail' && transporterAddress == "${connectedAccount}"]`;
-    const res = await client.fetch(query);
-
-    for (const element of res) {
-      const status = await contract.getOrderStatus(element.toAddress);
-      const newObj = {
-        orderAddress: element.toAddress,
-        txHash: element.txHash,
-        status: status,
-      };
-      allOrdersObjs.push(newObj);
-    }
-    setOrderRow(allOrdersObjs);
+    const allOrders = await contract.getAllOrders();
+    getStatus(allOrders);
+    setOrderRow(allOrders);
     setTransporterContract(contract);
   }, [metamask, connectedAccount]);
 
   const getSellerContract = useCallback(async () => {
-    const allOrdersObjs = [];
     const contract = await getContract(
       metamask,
       SellerContractAddress,
       SellerABI
     );
 
-    const query = `*[_type == 'orderdetail' && sellerAddress == "${connectedAccount}"]`;
-    const res = await client.fetch(query);
-
-    for (const element of res) {
-      const status = await contract.getOrderStatus(element.toAddress);
-      const newObj = {
-        orderAddress: element.toAddress,
-        txHash: element.txHash,
-        status: status,
-      };
-      allOrdersObjs.push(newObj);
-    }
-    setOrderRow(allOrdersObjs);
+    const allOrders = await contract.getAllOrders();
+    getStatus(allOrders);
+    setOrderRow(allOrders);
     setSellerContract(contract);
   }, [metamask, connectedAccount]);
+
+  const getStatus = useCallback(
+    async (data) => {
+      data.map(async (item) => {
+        const orderContract = await getContract(metamask, item, OrderABI);
+        const res = await orderContract.status();
+        let state = '';
+
+        switch (res) {
+          case 0:
+            state = 'Placed';
+            break;
+
+          case 1:
+            state = 'Confirmed';
+            break;
+
+          case 2:
+            state = 'Packaging';
+            break;
+
+          case 3:
+            state = 'Shipping';
+            break;
+
+          case 4:
+            state = 'Out for Delivery';
+            break;
+
+          case 5:
+            state = 'Delivered';
+            break;
+
+          case 6:
+            state = 'Cancel';
+            break;
+
+          default:
+            state = '--';
+            break;
+        }
+
+        setStatus((prev) => [...prev, state]);
+      });
+    },
+    [metamask]
+  );
 
   useEffect(() => {
     checkIfWalletIsConnected();
@@ -278,6 +287,7 @@ export const SupplyProvider = ({ children }) => {
     metamask,
     setAppStatus,
     fetchUserData,
+    status,
   };
   return (
     <SupplyContext.Provider value={value}>{children}</SupplyContext.Provider>

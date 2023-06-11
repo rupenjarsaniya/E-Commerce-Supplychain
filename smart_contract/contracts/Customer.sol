@@ -103,6 +103,7 @@ contract Customer {
         view
         returns (
             uint256 _orderId,
+            address _customer_ethAddress,
             address _seller_ethAddress,
             address _transporter_ethAddress,
             string memory _location,
@@ -112,6 +113,6 @@ contract Customer {
             Order.OrderStatus _status
         )
     {
-        return Order(orderAddress).getOrderDetail(msg.sender);
+        return Order(orderAddress).getOrderDetail();
     }
 }

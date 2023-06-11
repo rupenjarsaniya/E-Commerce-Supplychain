@@ -182,8 +182,10 @@ export default function Profile() {
                 { value: 3, label: 'Customer' },
                 { value: 4, label: 'Revoke' },
               ]}
-              value={role}
-              onChange={(event) => setRole(event)}
+              defaultValue={0}
+              onChange={(event) => {
+                setRole(event);
+              }}
               rightSection={
                 <ActionIcon variant="transparent">
                   {roleOpened ? (

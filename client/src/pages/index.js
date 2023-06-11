@@ -121,7 +121,7 @@ export default function Index() {
 
     try {
       const orderId = 200000;
-      const seller_ethAddress = '0x23feD9C71F87E9b6Ba989f92FF090d61E86D9e92';
+      const seller_ethAddress = '0xE72DEd6Ca937c5d114802Ba0ed041aD4711f0602';
       const transporter_ethAddress =
         '0xEaB4156CA83B929bE8150Ad10f52E39b1287FD0d';
       const location = 'Kutch';
@@ -149,6 +149,12 @@ export default function Index() {
         sellerAddress: seller_ethAddress,
         transporterAddress: transporter_ethAddress,
         toAddress: allOrders[allOrders.length - 1],
+        orderId: orderId,
+        location: location,
+        item: items,
+        quantity: quantity,
+        amount: 0.1,
+        status: 0,
       };
 
       await client.create(txDoc);

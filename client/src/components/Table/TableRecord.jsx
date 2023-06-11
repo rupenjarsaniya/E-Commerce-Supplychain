@@ -1,12 +1,5 @@
-import React, { useCallback, useContext, useMemo } from 'react';
-import {
-  createStyles,
-  Table,
-  Anchor,
-  Text,
-  ScrollArea,
-  Button,
-} from '@mantine/core';
+import React, { useCallback, useContext } from 'react';
+import { createStyles, Table, Anchor, Text, Button } from '@mantine/core';
 import Link from 'next/link';
 import { SupplyContext } from '@/contexts/SupplyContext';
 
@@ -23,117 +16,118 @@ const useStyles = createStyles(() => ({
     alignItems: 'center',
     gap: 5,
   },
+
+  loadingWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+  },
 }));
-
-export const getStatus = (status) => {
-  switch (status) {
-    case 0:
-      return 'Placed';
-
-    case 1:
-      return 'Confirmed';
-
-    case 2:
-      return 'Packaging';
-
-    case 3:
-      return 'Shipping';
-
-    case 4:
-      return 'Out for Delivery';
-
-    case 5:
-      return 'Delivered';
-
-    case 6:
-      return 'Cancel';
-
-    default:
-      break;
-  }
-};
 
 export const TableRecord = ({ data }) => {
   const { classes } = useStyles();
-  const { role, customerContract, sellerContract, transporterContract } =
-    useContext(SupplyContext);
 
-  const cancelOrder = useCallback(async (index) => {
-    if (!customerContract) {
-      return;
-    }
+  const {
+    role,
+    customerContract,
+    sellerContract,
+    transporterContract,
+    status,
+  } = useContext(SupplyContext);
 
-    try {
-      await customerContract.cancelOrder(index);
-    } catch (error) {
-      console.log(error);
-    }
-  });
+  const cancelOrder = useCallback(
+    async (index) => {
+      if (!customerContract) {
+        return;
+      }
 
-  const confirmOrder = useCallback(async (index) => {
-    if (!sellerContract) {
-      return;
-    }
+      try {
+        await customerContract.cancelOrder(index);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    [customerContract]
+  );
 
-    try {
-      const res = await sellerContract.getOrderByIndex(index);
-      await sellerContract.confirmOrder(res);
-    } catch (error) {
-      console.log(error);
-    }
-  });
+  const confirmOrder = useCallback(
+    async (index) => {
+      if (!sellerContract) {
+        return;
+      }
 
-  const packagingOrder = useCallback(async (index) => {
-    if (!sellerContract) {
-      return;
-    }
+      try {
+        const res = await sellerContract.getOrderByIndex(index);
+        await sellerContract.confirmOrder(res);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    [sellerContract]
+  );
 
-    try {
-      const res = await sellerContract.getOrderByIndex(index);
-      await sellerContract.packagingOrder(res);
-    } catch (error) {
-      console.log(error);
-    }
-  });
+  const packagingOrder = useCallback(
+    async (index) => {
+      if (!sellerContract) {
+        return;
+      }
 
-  const shippingOrder = useCallback(async (index) => {
-    if (!transporterContract) {
-      return;
-    }
+      try {
+        const res = await sellerContract.getOrderByIndex(index);
+        await sellerContract.packagingOrder(res);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    [sellerContract]
+  );
 
-    try {
-      const res = await transporterContract.getOrderByIndex(index);
-      await transporterContract.shippingOrder(res);
-    } catch (error) {
-      console.log(error);
-    }
-  });
+  const shippingOrder = useCallback(
+    async (index) => {
+      if (!transporterContract) {
+        return;
+      }
 
-  const outForDeliveryOrder = useCallback(async (index) => {
-    if (!transporterContract) {
-      return;
-    }
+      try {
+        const res = await transporterContract.getOrderByIndex(index);
+        await transporterContract.shippingOrder(res);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    [transporterContract]
+  );
 
-    try {
-      const res = await transporterContract.getOrderByIndex(index);
-      await transporterContract.outForDeliveryOrder(res);
-    } catch (error) {
-      console.log(error);
-    }
-  });
+  const outForDeliveryOrder = useCallback(
+    async (index) => {
+      if (!transporterContract) {
+        return;
+      }
 
-  const deliverdOrder = useCallback(async (index) => {
-    if (!transporterContract) {
-      return;
-    }
+      try {
+        const res = await transporterContract.getOrderByIndex(index);
+        await transporterContract.outForDeliveryOrder(res);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    [transporterContract]
+  );
 
-    try {
-      const res = await transporterContract.getOrderByIndex(index);
-      await transporterContract.deliverdOrder(res);
-    } catch (error) {
-      console.log(error);
-    }
-  });
+  const deliverdOrder = useCallback(
+    async (index) => {
+      if (!transporterContract) {
+        return;
+      }
+
+      try {
+        const res = await transporterContract.getOrderByIndex(index);
+        await transporterContract.deliverdOrder(res);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    [transporterContract]
+  );
 
   const buttonComponent = useCallback(
     (status, index) => {
@@ -144,7 +138,7 @@ export const TableRecord = ({ data }) => {
             size="xs"
             compact
             uppercase
-            disabled={status !== 0}
+            disabled={status !== 'Placed'}
             onClick={() => {
               cancelOrder(index);
             }}
@@ -161,7 +155,7 @@ export const TableRecord = ({ data }) => {
               size="xs"
               compact
               uppercase
-              disabled={status !== 0}
+              disabled={status !== 'Placed'}
               onClick={() => confirmOrder(index)}
             >
               Confirm
@@ -171,7 +165,7 @@ export const TableRecord = ({ data }) => {
               size="xs"
               compact
               uppercase
-              disabled={status !== 1}
+              disabled={status !== 'Confirmed'}
               onClick={() => packagingOrder(index)}
             >
               Packaging
@@ -187,7 +181,7 @@ export const TableRecord = ({ data }) => {
               size="xs"
               compact
               uppercase
-              disabled={status !== 2}
+              disabled={status !== 'Packaging'}
               onClick={() => shippingOrder(index)}
             >
               Shipping
@@ -197,7 +191,7 @@ export const TableRecord = ({ data }) => {
               size="xs"
               compact
               uppercase
-              disabled={status !== 3}
+              disabled={status !== 'Shipping'}
               onClick={() => outForDeliveryOrder(index)}
             >
               Out for delivery
@@ -207,7 +201,7 @@ export const TableRecord = ({ data }) => {
               size="xs"
               compact
               uppercase
-              disabled={status !== 4}
+              disabled={status !== 'Out for Delivery'}
               onClick={() => deliverdOrder(index)}
             >
               Delivered
@@ -229,46 +223,39 @@ export const TableRecord = ({ data }) => {
 
   return (
     <div className={classes.wrap}>
-      <ScrollArea>
-        <Table sx={{ minWidth: 1000 }} verticalSpacing="">
-          <thead>
-            <tr>
-              <th>Index</th>
-              <th>Transaction Hash</th>
-              <th>Actions</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data &&
-              data.length > 0 &&
-              data?.map((row, index) => {
-                console.log(row.txHash);
-                const url = `/history/${row.orderAddress}`;
-                return (
-                  <tr key={index}>
-                    <td>{index + 1}</td>
-                    <td>
-                      <Anchor component="button" fz="sm">
-                        <Link href={url}>{row.txHash}</Link>
-                      </Anchor>
-                    </td>
-                    <td>
-                      <div className={classes.buttonWrapper}>
-                        {buttonComponent(row.status, index)}
-                      </div>
-                    </td>
-                    <td>
-                      <Text className={classes.status}>
-                        {getStatus(row.status)}
-                      </Text>
-                    </td>
-                  </tr>
-                );
-              })}
-          </tbody>
-        </Table>
-      </ScrollArea>
+      <Table sx={{ minWidth: 1000 }} verticalSpacing="">
+        <thead>
+          <tr>
+            <th>Index</th>
+            <th>Order Address</th>
+            <th>Actions</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data?.map((row, index) => {
+            const url = `/history/${row}`;
+            return (
+              <tr key={index}>
+                <td>{index + 1}</td>
+                <td>
+                  <Anchor component="button" fz="sm">
+                    <Link href={url}>{row}</Link>
+                  </Anchor>
+                </td>
+                <td>
+                  <div className={classes.buttonWrapper}>
+                    {buttonComponent(status[index], index)}
+                  </div>
+                </td>
+                <td>
+                  <Text className={classes.status}>{status[index]}</Text>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </Table>
     </div>
   );
 };

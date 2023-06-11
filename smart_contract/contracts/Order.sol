@@ -155,14 +155,12 @@ contract Order {
     }
 
     // Get Order Details
-    function getOrderDetail(
-        address ethAddress
-    )
+    function getOrderDetail()
         external
         view
-        onlyCustomer(ethAddress)
         returns (
             uint _orderId,
+            address _customer_ethAddress,
             address _seller_ethAddress,
             address _transporter_ethAddress,
             string memory _location,
@@ -174,6 +172,7 @@ contract Order {
     {
         return (
             orderId,
+            customer_ethAddress,
             seller_ethAddress,
             transporter_ethAddress,
             location,
